@@ -1,10 +1,10 @@
-import {closest} from 'shared/utils';
+import { closest, mouseClosest } from 'shared/utils';
 
-import {Announcement, Focusable, Mirror, Scrollable} from './Plugins';
+import { Announcement, Focusable, Mirror, Scrollable } from './Plugins';
 
 import Emitter from './Emitter';
-import {MouseSensor, TouchSensor} from './Sensors';
-import {DraggableInitializedEvent, DraggableDestroyEvent} from './DraggableEvent';
+import { MouseSensor, TouchSensor } from './Sensors';
+import { DraggableInitializedEvent, DraggableDestroyEvent } from './DraggableEvent';
 
 import {
   DragStartEvent,
@@ -51,6 +51,7 @@ export const defaultOptions = {
   placedTimeout: 800,
   plugins: [],
   sensors: [],
+  enableGlobalDrag: false,
 };
 
 /**
@@ -69,7 +70,7 @@ export default class Draggable {
    * @property {Scrollable} Plugins.Scrollable
    * @type {Object}
    */
-  static Plugins = {Announcement, Focusable, Mirror, Scrollable};
+  static Plugins = { Announcement, Focusable, Mirror, Scrollable };
 
   /**
    * Draggable constructor.
@@ -152,7 +153,7 @@ export default class Draggable {
       draggable: this,
     });
 
-    this.on('mirror:created', ({mirror}) => (this.mirror = mirror));
+    this.on('mirror:created', ({ mirror }) => (this.mirror = mirror));
     this.on('mirror:destroy', () => (this.mirror = null));
 
     this.trigger(draggableInitializedEvent);
@@ -320,7 +321,7 @@ export default class Draggable {
    * Returns all draggable elements
    * @return {HTMLElement[]}
    */
-  getDraggableElements() {
+  getDraggableElements = () => {
     return this.containers.reduce((current, container) => {
       return [...current, ...this.getDraggableElementsForContainer(container)];
     }, []);
@@ -347,7 +348,7 @@ export default class Draggable {
    */
   [onDragStart](event) {
     const sensorEvent = getSensorEvent(event);
-    const {target, container} = sensorEvent;
+    const { target, container } = sensorEvent;
 
     if (!this.containers.includes(container)) {
       return;
@@ -402,7 +403,7 @@ export default class Draggable {
 
     requestAnimationFrame(() => {
       const oldSensorEvent = getSensorEvent(event);
-      const newSensorEvent = oldSensorEvent.clone({target: this.source});
+      const newSensorEvent = oldSensorEvent.clone({ target: this.source });
 
       this[onDragMove]({
         ...event,
@@ -422,8 +423,7 @@ export default class Draggable {
     }
 
     const sensorEvent = getSensorEvent(event);
-    const {container} = sensorEvent;
-    let target = sensorEvent.target;
+    const { container, target, clientX, clientY } = sensorEvent;
 
     const dragMoveEvent = new DragMoveEvent({
       source: this.source,
@@ -438,13 +438,17 @@ export default class Draggable {
       sensorEvent.cancel();
     }
 
-    target = closest(target, this.options.draggable);
+    const nextTarget = closest(target, this.options.draggable);
+
+    // this.currentOver 是当前鼠标所指的位置（包含draggable标签的dom 或 null）
+    // target 是占位dom所占的位置
     const withinCorrectContainer = closest(sensorEvent.target, this.containers);
     const overContainer = sensorEvent.overContainer || withinCorrectContainer;
     const isLeavingContainer = this.currentOverContainer && overContainer !== this.currentOverContainer;
-    const isLeavingDraggable = this.currentOver && target !== this.currentOver;
+    const isLeavingDraggable = this.currentOver && nextTarget !== this.currentOver;
     const isOverContainer = overContainer && this.currentOverContainer !== overContainer;
-    const isOverDraggable = withinCorrectContainer && target && this.currentOver !== target;
+    const isOverDraggable = withinCorrectContainer && nextTarget && this.currentOver !== nextTarget;
+    const shouldCalculatePos = this.options.enableGlobalDrag && !withinCorrectContainer;
 
     if (isLeavingDraggable) {
       const dragOutEvent = new DragOutEvent({
@@ -493,7 +497,7 @@ export default class Draggable {
     }
 
     if (isOverDraggable) {
-      target.classList.add(this.getClassNameFor('draggable:over'));
+      nextTarget.classList.add(this.getClassNameFor('draggable:over'));
 
       const dragOverEvent = new DragOverEvent({
         source: this.source,
@@ -501,10 +505,28 @@ export default class Draggable {
         sourceContainer: container,
         sensorEvent,
         overContainer,
-        over: target,
+        over: nextTarget,
       });
 
-      this.currentOver = target;
+      this.currentOver = nextTarget;
+
+      this.trigger(dragOverEvent);
+    }
+
+    if (shouldCalculatePos) {
+      const calculatedTarget = mouseClosest({ x: clientX, y: clientY }, this.getDraggableElements());
+      calculatedTarget.classList.add(this.getClassNameFor('draggable:over'));
+
+      const dragOverEvent = new DragOverEvent({
+        source: this.source,
+        originalSource: this.originalSource,
+        sourceContainer: container,
+        sensorEvent,
+        overContainer: container,
+        over: calculatedTarget,
+      });
+
+      this.currentOver = calculatedTarget;
 
       this.trigger(dragOverEvent);
     }

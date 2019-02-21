@@ -1,16 +1,16 @@
-declare module '@shopify/draggable/lib/draggable.bundle.legacy' {
-  export * from '@shopify/draggable';
+declare module 'draggable/lib/draggable.bundle.legacy' {
+  export * from 'draggable';
 }
 
-declare module '@shopify/draggable/lib/es5/draggable.bundle' {
-  export * from '@shopify/draggable';
+declare module 'draggable/lib/es5/draggable.bundle' {
+  export * from 'draggable';
 }
 
-declare module '@shopify/draggable/lib/es5/draggable.bundle.legacy' {
-  export * from '@shopify/draggable';
+declare module 'draggable/lib/es5/draggable.bundle.legacy' {
+  export * from 'draggable';
 }
 
-declare module '@shopify/draggable' {
+declare module 'draggable' {
   abstract class AbstractEvent<DataT = { [key: string]: any }> {
     constructor(data: DataT);
     static readonly type: string; // Abstract, waiting on https://github.com/Microsoft/TypeScript/issues/14600
@@ -110,6 +110,7 @@ declare module '@shopify/draggable' {
     mirror?: MirrorOptions;
     scrollable?: ScrollableOptions;
     swapAnimation?: SwapAnimationOptions;
+    enableGlobalDrag?: boolean;
   }
 
   export class Draggable<EventListType extends string = DraggableEventNames | MirrorEventNames> {
