@@ -448,7 +448,28 @@ export default class Draggable {
     const isLeavingDraggable = this.currentOver && nextTarget !== this.currentOver;
     const isOverContainer = overContainer && this.currentOverContainer !== overContainer;
     const isOverDraggable = withinCorrectContainer && nextTarget && this.currentOver !== nextTarget;
-    const shouldCalculatePos = this.options.enableGlobalDrag && !withinCorrectContainer;
+    const shouldCalculatePos = this.options.enableGlobalDrag && !withinCorrectContainer && !this.currentOverContainer;
+
+    if (shouldCalculatePos) {
+      const calculatedTarget = mouseClosest({ x: clientX, y: clientY }, this.getDraggableElements());
+      if (calculatedTarget === this.currentOver) { return; }
+
+      calculatedTarget.classList.add(this.getClassNameFor('draggable:over'));
+
+      const dragOverEvent = new DragOverEvent({
+        source: this.source,
+        originalSource: this.originalSource,
+        sourceContainer: container,
+        sensorEvent,
+        overContainer: container,
+        over: calculatedTarget,
+      });
+
+      this.currentOver = calculatedTarget;
+
+      this.trigger(dragOverEvent);
+      return;
+    }
 
     if (isLeavingDraggable) {
       const dragOutEvent = new DragOutEvent({
@@ -509,24 +530,6 @@ export default class Draggable {
       });
 
       this.currentOver = nextTarget;
-
-      this.trigger(dragOverEvent);
-    }
-
-    if (shouldCalculatePos) {
-      const calculatedTarget = mouseClosest({ x: clientX, y: clientY }, this.getDraggableElements());
-      calculatedTarget.classList.add(this.getClassNameFor('draggable:over'));
-
-      const dragOverEvent = new DragOverEvent({
-        source: this.source,
-        originalSource: this.originalSource,
-        sourceContainer: container,
-        sensorEvent,
-        overContainer: container,
-        over: calculatedTarget,
-      });
-
-      this.currentOver = calculatedTarget;
 
       this.trigger(dragOverEvent);
     }
