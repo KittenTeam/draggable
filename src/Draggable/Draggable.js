@@ -51,7 +51,7 @@ export const defaultOptions = {
   placedTimeout: 800,
   plugins: [],
   sensors: [],
-  enableGlobalDrag: false,
+  dragInSourceOnly: false,
 };
 
 /**
@@ -448,7 +448,7 @@ export default class Draggable {
     const isLeavingDraggable = this.currentOver && nextTarget !== this.currentOver;
     const isOverContainer = overContainer && this.currentOverContainer !== overContainer;
     const isOverDraggable = withinCorrectContainer && nextTarget && this.currentOver !== nextTarget;
-    const shouldCalculatePos = this.options.enableGlobalDrag && !withinCorrectContainer && !this.currentOverContainer;
+    const shouldCalculatePos = this.options.dragInSourceOnly && !withinCorrectContainer && !this.currentOverContainer;
 
     if (shouldCalculatePos) {
       const calculatedTarget = mouseClosest({ x: clientX, y: clientY }, this.getDraggableElements());

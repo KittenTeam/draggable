@@ -1,5 +1,5 @@
 import AbstractPlugin from 'shared/AbstractPlugin';
-import {closest} from 'shared/utils';
+import { closest } from 'shared/utils';
 
 export const onDragStart = Symbol('onDragStart');
 export const onDragMove = Symbol('onDragMove');
@@ -12,12 +12,14 @@ export const scroll = Symbol('scroll');
  * @property {Number} defaultOptions.speed
  * @property {Number} defaultOptions.sensitivity
  * @property {HTMLElement[]} defaultOptions.scrollableElements
+ * @property {Boolean} defaultOptions.onlyScrollIn
  * @type {Object}
  */
 export const defaultOptions = {
   speed: 6,
   sensitivity: 50,
   scrollableElements: [],
+  onlyScrollIn: null,
 };
 
 /**
@@ -41,12 +43,23 @@ export default class Scrollable extends AbstractPlugin {
      * @property {Number} options.speed
      * @property {Number} options.sensitivity
      * @property {HTMLElement[]} options.scrollableElements
+     * @property {HTMLElement|String} defaultOptions.onlyScrollIn
+     * 
      * @type {Object}
      */
     this.options = {
       ...defaultOptions,
       ...this.getOptions(),
     };
+
+    const onlyScrollIn = this.options.onlyScrollIn;
+    if (onlyScrollIn) {
+      if (typeof onlyScrollIn === 'string') {
+        this.onlyScrollInElement = document.querySelector(this.options.onlyScrollIn);
+      } else if (onlyScrollIn instanceof HTMLElement) {
+        this.onlyScrollInElement = onlyScrollIn;
+      }
+    }
 
     /**
      * Keeps current mouse position
@@ -152,7 +165,11 @@ export default class Scrollable extends AbstractPlugin {
    */
   [onDragMove](dragEvent) {
     this.findScrollableElementFrame = requestAnimationFrame(() => {
-      this.scrollableElement = this.getScrollableElement(dragEvent.sensorEvent.target);
+      if (!this.options.onlyScrollIn) {
+        this.scrollableElement = this.getScrollableElement(dragEvent.sensorEvent.target);
+        return;
+      }
+      this.scrollableElement = this.onlyScrollInElement || dragEvent.sensorEvent.container;
     });
 
     if (!this.scrollableElement) {
@@ -160,7 +177,7 @@ export default class Scrollable extends AbstractPlugin {
     }
 
     const sensorEvent = dragEvent.sensorEvent;
-    const scrollOffset = {x: 0, y: 0};
+    const scrollOffset = { x: 0, y: 0 };
 
     if ('ontouchstart' in window) {
       scrollOffset.y = window.pageYOffset || document.documentElement.scrollTop || document.body.scrollTop || 0;
@@ -200,7 +217,7 @@ export default class Scrollable extends AbstractPlugin {
 
     cancelAnimationFrame(this.scrollAnimationFrame);
 
-    const {speed, sensitivity} = this.options;
+    const { speed, sensitivity } = this.options;
 
     const rect = this.scrollableElement.getBoundingClientRect();
     const bottomCutOff = rect.bottom > window.innerHeight;
@@ -213,7 +230,7 @@ export default class Scrollable extends AbstractPlugin {
     const clientY = this.currentMousePosition.clientY;
 
     if (scrollableElement !== document.body && scrollableElement !== document.documentElement && !cutOff) {
-      const {offsetHeight, offsetWidth} = scrollableElement;
+      const { offsetHeight, offsetWidth } = scrollableElement;
 
       if (rect.top + offsetHeight - clientY < sensitivity) {
         scrollableElement.scrollTop += speed;
@@ -227,7 +244,7 @@ export default class Scrollable extends AbstractPlugin {
         scrollableElement.scrollLeft -= speed;
       }
     } else {
-      const {innerHeight, innerWidth} = window;
+      const { innerHeight, innerWidth } = window;
 
       if (clientY < sensitivity) {
         documentScrollingElement.scrollTop -= speed;

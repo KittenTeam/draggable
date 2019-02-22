@@ -110,7 +110,7 @@ declare module 'draggable' {
     mirror?: MirrorOptions;
     scrollable?: ScrollableOptions;
     swapAnimation?: SwapAnimationOptions;
-    enableGlobalDrag?: boolean;
+    dragInSourceOnly?: boolean;
   }
 
   export class Draggable<EventListType extends string = DraggableEventNames | MirrorEventNames> {
@@ -225,6 +225,7 @@ declare module 'draggable' {
     speed?: number;
     sensitivity?: number;
     scrollableElements?: HTMLElement[];
+    onlyScrollIn?: HTMLElement | string;
   }
 
   class Scrollable extends AbstractPlugin {
