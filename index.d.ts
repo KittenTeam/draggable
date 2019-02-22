@@ -206,7 +206,10 @@ declare module 'draggable' {
     cursorOffsetX?: number;
     cursorOffsetY?: number;
     appendTo?: string | HTMLElement | ((source: HTMLElement) => HTMLElement);
-    dragInContainer?: HTMLElement;
+    dragInContainer?: {
+      dragIn: string | HTMLElement;
+      padding?: number;
+    };
   }
 
   class Mirror extends AbstractPlugin {

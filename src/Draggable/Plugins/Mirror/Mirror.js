@@ -58,7 +58,7 @@ export default class Mirror extends AbstractPlugin {
      * @property {Number|null} options.cursorOffsetX
      * @property {Number|null} options.cursorOffsetY
      * @property {String|HTMLElement|Function} options.appendTo
-     * @property {HTMLElement} options.dragInContainer
+     * @property {String|HTMLElement} options.dragInContainer
      * @type {Object}
      */
     this.options = {
@@ -300,16 +300,16 @@ export default class Mirror extends AbstractPlugin {
 
     return (
       Promise.resolve(initialState)
-      // Fix reflow here
-      .then(computeMirrorDimensions)
-      .then(calculateMirrorOffset)
-      .then(resetMirror)
-      .then(addMirrorClasses)
-      .then(positionMirror({
-        initial: true
-      }))
-      .then(removeMirrorID)
-      .then(setState)
+        // Fix reflow here
+        .then(computeMirrorDimensions)
+        .then(calculateMirrorOffset)
+        .then(resetMirror)
+        .then(addMirrorClasses)
+        .then(positionMirror({
+          initial: true
+        }))
+        .then(removeMirrorID)
+        .then(setState)
     );
   }
 
@@ -555,11 +555,16 @@ function positionMirror({
           let max_y = Infinity;
 
           if (options.dragInContainer) {
-            const dragInRect = options.dragInContainer.getBoundingClientRect();
-            min_x = dragInRect.left;
-            min_y = dragInRect.top;
-            max_x = dragInRect.left + dragInRect.width - mirrorOffset.width;
-            max_y = dragInRect.top + dragInRect.height - mirrorOffset.height;
+            let dragInContainer = options.dragInContainer.dragIn;
+            if (typeof dragInContainer === 'string') {
+              dragInContainer = document.querySelector(dragInContainer);
+            }
+            const dragInRect = dragInContainer.getBoundingClientRect();
+            const padding = options.dragInContainer.padding || 0;
+            min_x = dragInRect.left + padding;
+            min_y = dragInRect.top + padding;
+            max_x = dragInRect.left + dragInRect.width - mirrorOffset.width - padding;
+            max_y = dragInRect.top + dragInRect.height - mirrorOffset.height - padding;
           }
 
           if (!(options.xAxis && options.yAxis) && !initial) {
