@@ -143,7 +143,7 @@ export default class Draggable {
     document.addEventListener('drag:stop', this[onDragStop], true);
     document.addEventListener('drag:pressure', this[onDragPressure], true);
 
-    const defaultPlugins = Object.values(Draggable.Plugins).map((Plugin) => Plugin);
+    const defaultPlugins = Object.keys(Draggable.Plugins).map((key) => Draggable.Plugins[key]);
     const defaultSensors = [MouseSensor, TouchSensor];
 
     this.addPlugin(...[...defaultPlugins, ...this.options.plugins]);

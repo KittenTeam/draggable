@@ -11,8 +11,8 @@ export default function mouse_closest(position, draggableElements) {
   let min_dis = Infinity;
 
   const getDistance = (el) => {
-    const { x, y } = el.getBoundingClientRect();
-    return (Math.abs(position.x - x) + Math.abs(position.y - y));
+    const { left, top } = el.getBoundingClientRect();
+    return (Math.abs(position.x - left) + Math.abs(position.y - top));
   }
 
   draggableElements.forEach((_element) => {
