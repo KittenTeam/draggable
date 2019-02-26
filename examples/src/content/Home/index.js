@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import {Draggable} from '@cmao/draggable';
+import {Draggable} from '@kitten-team/draggable';
 import Plate from '../../components/Plate';
 
 export default function Home() {

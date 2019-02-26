@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import {Draggable} from '@cmao/draggable';
+import {Draggable} from '@kitten-team/draggable';
 
 function translateMirror(mirror, mirrorCoords, containerRect) {
   if (mirrorCoords.top < containerRect.top || mirrorCoords.left < containerRect.left) {

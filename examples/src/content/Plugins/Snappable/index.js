@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import {Swappable, Plugins} from '@cmao/draggable';
+import {Swappable, Plugins} from '@kitten-team/draggable';
 
 export default function PluginsSnappable() {
   const containerSelector = '#Snappable .BlockLayout';

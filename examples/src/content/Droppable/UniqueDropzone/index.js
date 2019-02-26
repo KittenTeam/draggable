@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import {Droppable} from '@cmao/draggable';
+import {Droppable} from '@kitten-team/draggable';
 
 export default function UniqueDropzone() {
   const containers = document.querySelectorAll('#UniqueDropzone .BlockLayout');

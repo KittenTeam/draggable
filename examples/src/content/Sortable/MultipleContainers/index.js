@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import {Sortable, Plugins} from '@cmao/draggable';
+import {Sortable, Plugins} from '@kitten-team/draggable';
 
 const Classes = {
   draggable: 'StackedListItem--isDraggable',

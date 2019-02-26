@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import {Droppable, Plugins} from '@cmao/draggable';
+import {Droppable, Plugins} from '@kitten-team/draggable';
 
 export default function PluginsCollidable() {
   const containerSelector = '#Collidable .BlockLayout';

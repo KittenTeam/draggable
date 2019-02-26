@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import {Sortable} from '@cmao/draggable';
+import {Sortable} from '@kitten-team/draggable';
 
 export default function SimpleList() {
   const containerSelector = '#SimpleList .StackedList';
