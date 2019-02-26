@@ -2,7 +2,7 @@
 [![npm version](https://badge.fury.io/js/%40shopify%2Fdraggable.svg)](https://badge.fury.io/js/%40shopify%2Fdraggable)
 [![codecov](https://codecov.io/gh/Shopify/draggable/branch/master/graph/badge.svg)](https://codecov.io/gh/Shopify/draggable)
 [![Greenkeeper badge](https://badges.greenkeeper.io/Shopify/draggable.svg)](https://greenkeeper.io/)
-
+Codemao补充版[[README_zh.md]]
 <a href="https://shopify.github.io/draggable" title="Visit Draggable website">
   <img src="https://user-images.githubusercontent.com/643944/35602291-99e2c56e-0605-11e8-847f-95f1f6be1610.jpg" alt="">
 </a>
