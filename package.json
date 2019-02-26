@@ -1,6 +1,6 @@
 {
-  "name": "draggable",
-  "version": "1.0.1-kitten",
+  "name": "@cmao/draggable",
+  "version": "1.0.0",
   "private": false,
   "license": "MIT",
   "description": "The JavaScript Drag & Drop library your grandparents warned you about.",
@@ -78,9 +78,5 @@
       "transform-object-rest-spread",
       "transform-es2015-modules-commonjs"
     ]
-  },
-  "publishConfig": {
-    "access": "public",
-    "@shopify:registry": "https://registry.npmjs.org"
   }
 }

@@ -1,16 +1,16 @@
-declare module 'draggable/lib/draggable.bundle.legacy' {
-  export * from 'draggable';
+declare module '@cmao/draggable/lib/draggable.bundle.legacy' {
+  export * from '@cmao/draggable';
 }
 
-declare module 'draggable/lib/es5/draggable.bundle' {
-  export * from 'draggable';
+declare module '@cmao/draggable/lib/es5/draggable.bundle' {
+  export * from '@cmao/draggable';
 }
 
-declare module 'draggable/lib/es5/draggable.bundle.legacy' {
-  export * from 'draggable';
+declare module '@cmao/draggable/lib/es5/draggable.bundle.legacy' {
+  export * from '@cmao/draggable';
 }
 
-declare module 'draggable' {
+declare module '@cmao/draggable' {
   abstract class AbstractEvent<DataT = { [key: string]: any }> {
     constructor(data: DataT);
     static readonly type: string; // Abstract, waiting on https://github.com/Microsoft/TypeScript/issues/14600

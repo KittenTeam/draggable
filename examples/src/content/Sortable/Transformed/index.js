@@ -1,5 +1,5 @@
 // eslint-disable-next-line import/no-unresolved
-import {Sortable} from '@shopify/draggable';
+import {Sortable} from '@cmao/draggable';
 
 export default function Transformed() {
   const containerSelector = '#Transformed .PaperStack';

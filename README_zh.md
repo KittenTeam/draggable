@@ -1,15 +1,26 @@
 
-
 ## 目录
-
-- [进度](#进度)
-- [示例](#示例)
+- [简介](#简介)
+- [功能与用法](#功能与用法)
 - [已知问题](#已知问题)
+- [需求与bug提交](#需求与bug提交)
+- [开发指南](#开发指南)
 
-## 进度
+## 简介
 
-至fork时，原始版本为`v1.0.0-beta.8`。还是半成品，连index.d.ts都还有小问题。
-本版本从`v1.0.1-kitten`开始。从原始版本新增的功能如下：
+这是一个在开源项目[@shopify/draggable](https://github.com/Shopify/draggable)的基础上，添加和定制了一些功能（以达到产品经理要求）的拖拽插件。
+相对于此前kitten中使用的dragula/react-draggable，其优势主要有：
+- 便捷地获得排序前后的index
+- 拖动到边缘时自动滚动容器
+- 不影响被绑定拖拽对象的focus功能
+- 限制拖动范围功能
+
+## 功能与用法
+
+### 主要定制功能
+
+至fork时，原始版本为`v1.0.0-beta.8`。还是半成品，连index.d.ts都还有小问题。可在原版readme中找到其功能介绍。
+本版本从`v1.0.0`开始。从原始版本新增的功能如下：
 
 **限制镜像移动范围**
 
@@ -26,28 +37,64 @@
 
 更改了原版中Object.values的应用使之支持到chrome 49。
 
-## 用法示例
+### 安装
+
+通过yarn安装
+
+```
+yarn add @cmao/draggable
+```
+
+### 官方demo
+
+1. 打包当前插件
+```
+yarn
+```
+该操作将在 examples/ 下生成 package/ 目录，作为demo的依赖。
+
+2. 转到对应demo目录
+```
+cd examples
+```
+
+3. 安装依赖
+```
+yarn
+```
+
+4. 运行demo
+```
+yarn start
+```
+具体demo及控制地址可从控制台信息中获得。
+
+### 项目中的用法示例
+
+以react为例，在componentWillMount这个生命周期初始化插件：
 
 ```javascript
-const sortable = new Sortable(ref_of_source_container, {
-	draggable: '.class_name_of_draggable_elements',
-	delay: 300,
-	dragInSourceOnly: true,
-	mirror: {
-		constrainDimensions: true,
-		dragInContainer: {
-			dragIn: '#id_of_drag_area',
-			padding: 15,
-		},
-	},
-	scrollable: {
-		onlyScrollIn: '#id_of_scrollable_area',
-	},
-});
+componentWillMount() {
+  const sortable = new Sortable(ref_of_source_container, {
+    draggable: '.class_name_of_draggable_elements',
+    delay: 300,
+    dragInSourceOnly: true,
+    mirror: {
+      constrainDimensions: true,
+      dragInContainer: {
+        dragIn: '#id_of_drag_area',
+        padding: 15,
+      },
+    },
+    scrollable: {
+      onlyScrollIn: '#id_of_scrollable_area',
+    },
+  });
 
-sortable.on('sortable:stop', (e:SortableStopEvent) => {
-	do_sort(e.oldIndex, e.newIndex);
-});
+  sortable.on('sortable:stop', (e:SortableStopEvent) => {
+    do_sort(e.oldIndex, e.newIndex);
+  });
+}
 ```
 
 **说明**
@@ -80,3 +127,36 @@ sortable.on('sortable:stop', (e:SortableStopEvent) => {
 **兼容性问题**
 
 为了在保持拓展性的同时保持兼容，需添加polyfill。
+
+## 需求与bug提交
+
+``提交到 Phabricator的Ponder中，并通知相关人员。``
+
+## 开发指南
+
+### 测试
+
+每次提交之前，都需要运行
+
+1. 代码规范测试
+```
+yarn lint --fix
+```
+后缀`--fix`会自动修正简单的空格问题。
+
+2. 保证新增的功能不破坏原有功能的单元测试
+```
+yarn test
+```
+目前测试用例只有原库自带的基础功能部分。
+
+### 发布
+
+1. 更新 package.json 中的版本号，并在版本号修改的提交加上附注tag以标明对应版本号，可以使用
+```
+npm version major|minor|patch
+```
+
+2. 将版本号的修改提交与tag推入远端
+
+3. 通知发版负责人进行发版（如没有权限，请直接钉钉联系绿豆）

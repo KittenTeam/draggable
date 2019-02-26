@@ -74,7 +74,7 @@ export default class Mirror extends AbstractPlugin {
      */
     this.scrollOffset = {
       x: 0,
-      y: 0
+      y: 0,
     };
 
     /**
@@ -142,12 +142,7 @@ export default class Mirror extends AbstractPlugin {
       y: window.scrollY,
     };
 
-    const {
-      source,
-      originalSource,
-      sourceContainer,
-      sensorEvent
-    } = dragEvent;
+    const {source, originalSource, sourceContainer, sensorEvent} = dragEvent;
 
     const mirrorCreateEvent = new MirrorCreateEvent({
       source,
@@ -194,12 +189,7 @@ export default class Mirror extends AbstractPlugin {
       return;
     }
 
-    const {
-      source,
-      originalSource,
-      sourceContainer,
-      sensorEvent
-    } = dragEvent;
+    const {source, originalSource, sourceContainer, sensorEvent} = dragEvent;
 
     const mirrorMoveEvent = new MirrorMoveEvent({
       source,
@@ -220,22 +210,18 @@ export default class Mirror extends AbstractPlugin {
 
     this.initialScrollOffset = {
       x: 0,
-      y: 0
+      y: 0,
     };
     this.scrollOffset = {
       x: 0,
-      y: 0
+      y: 0,
     };
 
     if (!this.mirror) {
       return;
     }
 
-    const {
-      source,
-      sourceContainer,
-      sensorEvent
-    } = dragEvent;
+    const {source, sourceContainer, sensorEvent} = dragEvent;
 
     const mirrorDestroyEvent = new MirrorDestroyEvent({
       source,
@@ -265,19 +251,10 @@ export default class Mirror extends AbstractPlugin {
    * @return {Promise}
    * @private
    */
-  [onMirrorCreated]({
-    mirror,
-    source,
-    sensorEvent
-  }) {
+  [onMirrorCreated]({mirror, source, sensorEvent}) {
     const mirrorClass = this.draggable.getClassNameFor('mirror');
 
-    const setState = ({
-      mirrorOffset,
-      initialX,
-      initialY,
-      ...args
-    }) => {
+    const setState = ({mirrorOffset, initialX, initialY, ...args}) => {
       this.mirrorOffset = mirrorOffset;
       this.initialX = initialX;
       this.initialY = initialY;
@@ -285,7 +262,7 @@ export default class Mirror extends AbstractPlugin {
         mirrorOffset,
         initialX,
         initialY,
-        ...args
+        ...args,
       };
     };
 
@@ -305,9 +282,11 @@ export default class Mirror extends AbstractPlugin {
         .then(calculateMirrorOffset)
         .then(resetMirror)
         .then(addMirrorClasses)
-        .then(positionMirror({
-          initial: true
-        }))
+        .then(
+          positionMirror({
+            initial: true,
+          }),
+        )
         .then(removeMirrorID)
         .then(setState)
     );
@@ -334,9 +313,11 @@ export default class Mirror extends AbstractPlugin {
       scrollOffset: this.scrollOffset,
     };
 
-    return Promise.resolve(initialState).then(positionMirror({
-      raf: true
-    }));
+    return Promise.resolve(initialState).then(
+      positionMirror({
+        raf: true,
+      }),
+    );
   }
 
   /**
@@ -369,16 +350,13 @@ export default class Mirror extends AbstractPlugin {
  * @return {Promise}
  * @private
  */
-function computeMirrorDimensions({
-  source,
-  ...args
-}) {
+function computeMirrorDimensions({source, ...args}) {
   return withPromise((resolve) => {
     const sourceRect = source.getBoundingClientRect();
     resolve({
       source,
       sourceRect,
-      ...args
+      ...args,
     });
   });
 }
@@ -392,12 +370,7 @@ function computeMirrorDimensions({
  * @return {Promise}
  * @private
  */
-function calculateMirrorOffset({
-  sensorEvent,
-  sourceRect,
-  options,
-  ...args
-}) {
+function calculateMirrorOffset({sensorEvent, sourceRect, options, ...args}) {
   return withPromise((resolve) => {
     const top = options.cursorOffsetY === null ? sensorEvent.clientY - sourceRect.top : options.cursorOffsetY;
     const left = options.cursorOffsetX === null ? sensorEvent.clientX - sourceRect.left : options.cursorOffsetX;
@@ -416,7 +389,7 @@ function calculateMirrorOffset({
       sourceRect,
       mirrorOffset,
       options,
-      ...args
+      ...args,
     });
   });
 }
@@ -430,12 +403,7 @@ function calculateMirrorOffset({
  * @return {Promise}
  * @private
  */
-function resetMirror({
-  mirror,
-  source,
-  options,
-  ...args
-}) {
+function resetMirror({mirror, source, options, ...args}) {
   return withPromise((resolve) => {
     let offsetHeight;
     let offsetWidth;
@@ -461,7 +429,7 @@ function resetMirror({
       mirror,
       source,
       options,
-      ...args
+      ...args,
     });
   });
 }
@@ -474,17 +442,13 @@ function resetMirror({
  * @return {Promise}
  * @private
  */
-function addMirrorClasses({
-  mirror,
-  mirrorClass,
-  ...args
-}) {
+function addMirrorClasses({mirror, mirrorClass, ...args}) {
   return withPromise((resolve) => {
     mirror.classList.add(mirrorClass);
     resolve({
       mirror,
       mirrorClass,
-      ...args
+      ...args,
     });
   });
 }
@@ -496,16 +460,13 @@ function addMirrorClasses({
  * @return {Promise}
  * @private
  */
-function removeMirrorID({
-  mirror,
-  ...args
-}) {
+function removeMirrorID({mirror, ...args}) {
   return withPromise((resolve) => {
     mirror.removeAttribute('id');
     delete mirror.id;
     resolve({
       mirror,
-      ...args
+      ...args,
     });
   });
 }
@@ -522,20 +483,8 @@ function removeMirrorID({
  * @return {Promise}
  * @private
  */
-function positionMirror({
-  withFrame = false,
-  initial = false
-} = {}) {
-  return ({
-    mirror,
-    sensorEvent,
-    mirrorOffset,
-    initialY,
-    initialX,
-    scrollOffset,
-    options,
-    ...args
-  }) => {
+function positionMirror({withFrame = false, initial = false} = {}) {
+  return ({mirror, sensorEvent, mirrorOffset, initialY, initialX, scrollOffset, options, ...args}) => {
     return withPromise(
       (resolve) => {
         const result = {
@@ -549,10 +498,10 @@ function positionMirror({
         if (mirrorOffset) {
           let x = sensorEvent.clientX - mirrorOffset.left - scrollOffset.x;
           let y = sensorEvent.clientY - mirrorOffset.top - scrollOffset.y;
-          let min_x = 0;
-          let min_y = 0;
-          let max_x = Infinity;
-          let max_y = Infinity;
+          let minX = 0;
+          let minY = 0;
+          let maxX = Infinity;
+          let maxY = Infinity;
 
           if (options.dragInContainer) {
             let dragInContainer = options.dragInContainer.dragIn;
@@ -561,10 +510,10 @@ function positionMirror({
             }
             const dragInRect = dragInContainer.getBoundingClientRect();
             const padding = options.dragInContainer.padding || 0;
-            min_x = dragInRect.left + padding;
-            min_y = dragInRect.top + padding;
-            max_x = dragInRect.left + dragInRect.width - mirrorOffset.width - padding;
-            max_y = dragInRect.top + dragInRect.height - mirrorOffset.height - padding;
+            minX = dragInRect.left + padding;
+            minY = dragInRect.top + padding;
+            maxX = dragInRect.left + dragInRect.width - mirrorOffset.width - padding;
+            maxY = dragInRect.top + dragInRect.height - mirrorOffset.height - padding;
           }
 
           if (!(options.xAxis && options.yAxis) && !initial) {
@@ -575,8 +524,8 @@ function positionMirror({
             }
           }
 
-          x = Math.min(Math.max(x, min_x), max_x);
-          y = Math.min(Math.max(y, min_y), max_y);
+          x = Math.min(Math.max(x, minX), maxX);
+          y = Math.min(Math.max(y, minY), maxY);
           mirror.style.transform = `translate3d(${x}px, ${y}px, 0)`;
 
           if (initial) {
@@ -586,8 +535,9 @@ function positionMirror({
         }
 
         resolve(result);
-      }, {
-        frame: withFrame
+      },
+      {
+        frame: withFrame,
       },
     );
   };
@@ -601,9 +551,7 @@ function positionMirror({
  * @return {Promise}
  * @private
  */
-function withPromise(callback, {
-  raf = false
-} = {}) {
+function withPromise(callback, {raf = false} = {}) {
   return new Promise((resolve, reject) => {
     if (raf) {
       requestAnimationFrame(() => {
