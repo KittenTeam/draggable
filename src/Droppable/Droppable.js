@@ -52,6 +52,7 @@ const defaultClasses = {
 
 const defaultOptions = {
   dropzone: '.draggable-droppable',
+  enableSingleFlag: false,
 };
 
 /**
@@ -156,8 +157,18 @@ export default class Droppable extends Draggable {
     this.initialDropzone = dropzone;
 
     for (const dropzoneElement of this.dropzones) {
-      if (dropzoneElement.classList.contains(this.getClassNameFor('droppable:occupied'))) {
-        continue;
+      if (this.options.enableSingleFlag && dropzoneElement.classList.contains('singleDropzone')) {
+        let hasBeenOccupied = false;
+        for (const childElement of dropzoneElement.childNodes) {
+          if (childElement.classList.contains(this.options.draggable.slice(1))) {
+            hasBeenOccupied = true;
+            break;
+          }
+        }
+        if (hasBeenOccupied) {
+          dropzoneElement.classList.add(this.getClassNameFor('droppable:occupied'));
+          continue;
+        }
       }
 
       dropzoneElement.classList.add(this.getClassNameFor('droppable:active'));
@@ -198,14 +209,9 @@ export default class Droppable extends Draggable {
 
     this.trigger(droppableStopEvent);
 
-    const occupiedClass = this.getClassNameFor('droppable:occupied');
-
     for (const dropzone of this.dropzones) {
       dropzone.classList.remove(this.getClassNameFor('droppable:active'));
-    }
-
-    if (this.lastDropzone && this.lastDropzone !== this.initialDropzone) {
-      this.initialDropzone.classList.remove(occupiedClass);
+      dropzone.classList.remove(this.getClassNameFor('droppable:occupied'));
     }
 
     this.dropzones = null;

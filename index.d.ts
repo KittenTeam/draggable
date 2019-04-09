@@ -312,6 +312,7 @@ declare module '@kitten-team/draggable' {
 
   export interface DroppableOptions extends DraggableOptions {
     dropzone: string | NodeList | HTMLElement[] | (() => NodeList | HTMLElement[]);
+    enableSingleFlag?: boolean;
     classes?: { [key in DroppableClassNames]: string };
   }
 
