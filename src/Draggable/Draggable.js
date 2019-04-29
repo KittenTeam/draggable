@@ -336,11 +336,10 @@ export default class Draggable {
   getDraggableElementsForContainer(container) {
     const allDraggableElements = container.querySelectorAll(this.options.draggable);
 
-    return [...allDraggableElements].filter((childElement) => {
+    return Array.from(allDraggableElements).filter((childElement) => {
       return childElement !== this.originalSource && childElement !== this.mirror;
     });
   }
-
   /**
    * Drag start handler
    * @private
