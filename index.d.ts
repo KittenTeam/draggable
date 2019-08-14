@@ -101,6 +101,7 @@ declare module '@kitten-team/draggable' {
   interface DraggableOptions {
     draggable?: string;
     handle?: string | NodeList | HTMLElement[] | HTMLElement | ((currentElement: HTMLElement) => HTMLElement);
+    except?: string | NodeList | HTMLElement[] | HTMLElement | ((currentElement: HTMLElement) => HTMLElement);
     delay?: number;
     plugins?: Array<typeof AbstractPlugin>;
     sensors?: Sensor[];

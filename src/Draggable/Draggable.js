@@ -47,6 +47,7 @@ const defaultClasses = {
 export const defaultOptions = {
   draggable: '.draggable-source',
   handle: null,
+  except: null,
   delay: 100,
   placedTimeout: 800,
   plugins: [],
@@ -354,6 +355,11 @@ export default class Draggable {
     }
 
     if (this.options.handle && target && !closest(target, this.options.handle)) {
+      sensorEvent.cancel();
+      return;
+    }
+
+    if (this.options.except && target && closest(target, this.options.except)) {
       sensorEvent.cancel();
       return;
     }
