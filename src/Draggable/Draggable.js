@@ -1,6 +1,6 @@
-import {closest, mouseClosest} from 'shared/utils';
+import {closest, mouseClosest, guidesTargetIndex} from 'shared/utils';
 
-import {Announcement, Focusable, Mirror, Scrollable} from './Plugins';
+import {Announcement, Focusable, Mirror, Scrollable, Guides} from './Plugins';
 
 import Emitter from './Emitter';
 import {MouseSensor, TouchSensor} from './Sensors';
@@ -42,6 +42,8 @@ const defaultClasses = {
   'container:over': 'draggable-container--over',
   'source:original': 'draggable--original',
   mirror: 'draggable-mirror',
+  guidesX: 'draggable-guides--x',
+  guidesY: 'draggable-guides--y',
 };
 
 export const defaultOptions = {
@@ -69,9 +71,16 @@ export default class Draggable {
    * @property {Focusable} Plugins.Focusable
    * @property {Mirror} Plugins.Mirror
    * @property {Scrollable} Plugins.Scrollable
+   * @property {Guides} Plugins.Guides
    * @type {Object}
    */
-  static Plugins = {Announcement, Focusable, Mirror, Scrollable};
+  static Plugins = {
+    Announcement,
+    Focusable,
+    Mirror,
+    Scrollable,
+    Guides,
+  };
 
   /**
    * Draggable constructor.
@@ -134,6 +143,10 @@ export default class Draggable {
      */
     this.sensors = [];
 
+    this.isBindScroll = false;
+    this.currentMousePosition = null;
+    // this.scrollAnimationFrameInDrag = null;
+
     this[onDragStart] = this[onDragStart].bind(this);
     this[onDragMove] = this[onDragMove].bind(this);
     this[onDragStop] = this[onDragStop].bind(this);
@@ -156,6 +169,11 @@ export default class Draggable {
 
     this.on('mirror:created', ({mirror}) => (this.mirror = mirror));
     this.on('mirror:destroy', () => (this.mirror = null));
+
+    if (this.options.guides) {
+      this.on('guides:created', ({guides}) => (this.guides = guides));
+      this.on('guides:destroy', () => (this.guides = null));
+    }
 
     this.trigger(draggableInitializedEvent);
   }
@@ -329,7 +347,7 @@ export default class Draggable {
   }
 
   /**
-   * Returns draggable elements for a given container, excluding the mirror and
+   * Returns draggable elements for a given container, excluding the mirror, the guides and
    * original source element if present
    * @param {HTMLElement} container
    * @return {HTMLElement[]}
@@ -341,6 +359,34 @@ export default class Draggable {
       return childElement !== this.originalSource && childElement !== this.mirror;
     });
   }
+
+  getGuidesDirection() {
+    if (this.options.guides) {
+      return this.options.guides.guidesDir;
+    }
+    return '';
+  }
+
+  /**
+   * Scroll function that does the heavylifting
+   * @private
+   */
+  scrollHandler() {
+    if (!this.onlyScrollInElement || !this.currentMousePosition) {
+      return;
+    }
+    const clientX = this.currentMousePosition.clientX;
+    const clientY = this.currentMousePosition.clientY;
+
+    const dragMoveEventScroll = new DragMoveEvent({
+      source: this.source,
+      originalSource: this.originalSource,
+      sourceContainer: this.source.parentNode,
+      sensorEvent: {clientX, clientY},
+    });
+    this.trigger(dragMoveEventScroll);
+  }
+
   /**
    * Drag start handler
    * @private
@@ -408,7 +454,9 @@ export default class Draggable {
 
     requestAnimationFrame(() => {
       const oldSensorEvent = getSensorEvent(event);
-      const newSensorEvent = oldSensorEvent.clone({target: this.source});
+      const newSensorEvent = oldSensorEvent.clone({
+        target: this.source,
+      });
 
       this[onDragMove]({
         ...event,
@@ -443,6 +491,51 @@ export default class Draggable {
       sensorEvent.cancel();
     }
 
+    const guidesDir = this.getGuidesDirection();
+    if (guidesDir) {
+      const allDraggableElements = this.getDraggableElements();
+      this.currentMousePosition = {
+        clientX: sensorEvent.clientX,
+        clientY: sensorEvent.clientY,
+      };
+      // 在滑动的时候触发 dragmove 事件，使得鼠标不动但是滑动的时候参考线也进行移动
+      // 如何防止重复触发
+      if (this.options.scrollable && !this.isBindScroll && !this.onlyScrollInElement) {
+        const onlyScrollIn = this.options.scrollable.onlyScrollIn;
+        if (onlyScrollIn) {
+          if (typeof onlyScrollIn === 'string') {
+            this.onlyScrollInElement = document.querySelector(onlyScrollIn);
+          } else if (onlyScrollIn instanceof HTMLElement) {
+            this.onlyScrollInElement = onlyScrollIn;
+          }
+          this.onlyScrollInElement.addEventListener('scroll', this.scrollHandler.bind(this));
+          this.isBindScroll = true;
+        }
+      }
+      let nextTargetIndex = guidesTargetIndex({x: clientX, y: clientY}, guidesDir, allDraggableElements);
+      if (nextTargetIndex > allDraggableElements.indexOf(this.source)) {
+        nextTargetIndex -= 1;
+      }
+      if (nextTargetIndex === this.currentIndex) {
+        return;
+      }
+      const dragOverEvent = new DragOverEvent({
+        source: this.source,
+        originalSource: this.originalSource,
+        sourceContainer: container,
+        sensorEvent,
+        overContainer: container,
+        lastIndex: this.currentIndex,
+        nextTargetIndex,
+      });
+
+      this.currentIndex = nextTargetIndex;
+
+      this.trigger(dragOverEvent);
+      // this.scrollAnimationFrameInDrag = requestAnimationFrame(this.scrollHandler);
+      return;
+    }
+
     const nextTarget = closest(target, this.options.draggable);
 
     // this.currentOver 是当前鼠标所指的位置（包含draggable标签的dom 或 null）
@@ -462,7 +555,6 @@ export default class Draggable {
       }
 
       calculatedTarget.classList.add(this.getClassNameFor('draggable:over'));
-
       const dragOverEvent = new DragOverEvent({
         source: this.source,
         originalSource: this.originalSource,
@@ -553,20 +645,50 @@ export default class Draggable {
     }
 
     this.dragging = false;
-
-    const dragStopEvent = new DragStopEvent({
-      source: this.source,
-      originalSource: this.originalSource,
-      sensorEvent: event.sensorEvent,
-      sourceContainer: this.sourceContainer,
-    });
-
-    this.trigger(dragStopEvent);
-
-    this.source.parentNode.insertBefore(this.originalSource, this.source);
+    const guidesDir = this.getGuidesDirection();
+    if (guidesDir) {
+      // cancelAnimationFrame(this.scrollAnimationFrameInDrag);
+      // this.scrollAnimationFrameInDrag = null;
+      const {clientX, clientY} = getSensorEvent(event);
+      const allDraggableElements = this.getDraggableElements();
+      let guidesIndex = guidesTargetIndex({x: clientX, y: clientY}, guidesDir, allDraggableElements);
+      if (guidesIndex > allDraggableElements.indexOf(this.source)) {
+        guidesIndex -= 1;
+      }
+      const dragStopEvent = new DragStopEvent({
+        source: this.source,
+        originalSource: this.originalSource,
+        sensorEvent: event.sensorEvent,
+        sourceContainer: this.sourceContainer,
+        guidesIndex,
+      });
+      this.trigger(dragStopEvent);
+      if (guidesIndex === allDraggableElements.length - 1) {
+        this.source.parentNode.appendChild(this.originalSource);
+      } else {
+        const targetElement =
+          guidesIndex > allDraggableElements.indexOf(this.source)
+            ? allDraggableElements[guidesIndex + 1]
+            : allDraggableElements[guidesIndex];
+        this.source.parentNode.insertBefore(this.originalSource, targetElement);
+      }
+      if (this.onlyScrollInElement && this.isBindScroll) {
+        this.onlyScrollInElement.onscroll = null;
+        this.onlyScrollInElement = null;
+        this.isBindScroll = false;
+      }
+    } else {
+      const dragStopEvent = new DragStopEvent({
+        source: this.source,
+        originalSource: this.originalSource,
+        sensorEvent: event.sensorEvent,
+        sourceContainer: this.sourceContainer,
+      });
+      this.trigger(dragStopEvent);
+      this.source.parentNode.insertBefore(this.originalSource, this.source);
+    }
     this.source.parentNode.removeChild(this.source);
     this.originalSource.style.display = '';
-
     this.source.classList.remove(this.getClassNameFor('source:dragging'));
     this.originalSource.classList.remove(this.getClassNameFor('source:original'));
     this.originalSource.classList.add(this.getClassNameFor('source:placed'));
@@ -604,6 +726,8 @@ export default class Draggable {
     this.currentOverContainer = null;
     this.currentOver = null;
     this.sourceContainer = null;
+    this.currentIndex = null;
+    this.currentMousePosition = null;
   }
 
   /**

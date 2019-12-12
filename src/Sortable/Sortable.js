@@ -157,7 +157,12 @@ export default class Sortable extends Draggable {
     }
 
     const children = this.getDraggableElementsForContainer(overContainer);
-    const moves = move({source, over, overContainer, children});
+    const moves = move({
+      source,
+      over,
+      overContainer,
+      children,
+    });
 
     if (!moves) {
       return;
@@ -187,8 +192,8 @@ export default class Sortable extends Draggable {
       return;
     }
 
-    const {source, over, overContainer} = event;
-    const oldIndex = this.index(source);
+    const {source, over, overContainer, lastIndex, nextTargetIndex} = event;
+    const oldIndex = this.getGuidesDirection() ? lastIndex : this.index(source);
 
     const sortableSortEvent = new SortableSortEvent({
       dragEvent: event,
@@ -204,14 +209,20 @@ export default class Sortable extends Draggable {
     }
 
     const children = this.getDraggableElementsForContainer(overContainer);
-    const moves = move({source, over, overContainer, children});
+    const moves = move({
+      source,
+      over,
+      overContainer,
+      children,
+      guidesDir: this.getGuidesDirection(),
+    });
 
     if (!moves) {
       return;
     }
 
     const {oldContainer, newContainer} = moves;
-    const newIndex = this.index(source);
+    const newIndex = this.getGuidesDirection() ? nextTargetIndex : this.index(source);
 
     const sortableSortedEvent = new SortableSortedEvent({
       dragEvent: event,
@@ -230,16 +241,17 @@ export default class Sortable extends Draggable {
    * @param {DragStopEvent} event - Drag stop event
    */
   [onDragStop](event) {
+    const detail = getSensorEvent(event);
+    const newIndex = this.getGuidesDirection() ? detail.guidesIndex : this.index(event.source);
     const sortableStopEvent = new SortableStopEvent({
       dragEvent: event,
       oldIndex: this.startIndex,
-      newIndex: this.index(event.source),
+      newIndex,
       oldContainer: this.startContainer,
       newContainer: event.source.parentNode,
     });
 
     this.trigger(sortableStopEvent);
-
     this.startIndex = null;
     this.startContainer = null;
   }
@@ -249,7 +261,11 @@ function index(element) {
   return Array.prototype.indexOf.call(element.parentNode.children, element);
 }
 
-function move({source, over, overContainer, children}) {
+function getSensorEvent(event) {
+  return event.data;
+}
+
+function move({source, over, overContainer, children, guidesDir = ''}) {
   const emptyOverContainer = !children.length;
   const differentContainer = source.parentNode !== overContainer;
   const sameContainer = over && !differentContainer;
@@ -257,7 +273,7 @@ function move({source, over, overContainer, children}) {
   if (emptyOverContainer) {
     return moveInsideEmptyContainer(source, overContainer);
   } else if (sameContainer) {
-    return moveWithinContainer(source, over);
+    return moveWithinContainer(source, over, guidesDir);
   } else if (differentContainer) {
     return moveOutsideContainer(source, over, overContainer);
   } else {
@@ -270,10 +286,19 @@ function moveInsideEmptyContainer(source, overContainer) {
 
   overContainer.appendChild(source);
 
-  return {oldContainer, newContainer: overContainer};
+  return {
+    oldContainer,
+    newContainer: overContainer,
+  };
 }
 
-function moveWithinContainer(source, over) {
+function moveWithinContainer(source, over, guidesDir) {
+  if (guidesDir) {
+    return {
+      oldContainer: source.parentNode,
+      newContainer: source.parentNode,
+    };
+  }
   const oldIndex = index(source);
   const newIndex = index(over);
 
@@ -283,7 +308,10 @@ function moveWithinContainer(source, over) {
     source.parentNode.insertBefore(source, over);
   }
 
-  return {oldContainer: source.parentNode, newContainer: source.parentNode};
+  return {
+    oldContainer: source.parentNode,
+    newContainer: source.parentNode,
+  };
 }
 
 function moveOutsideContainer(source, over, overContainer) {
@@ -296,5 +324,8 @@ function moveOutsideContainer(source, over, overContainer) {
     overContainer.appendChild(source);
   }
 
-  return {oldContainer, newContainer: source.parentNode};
+  return {
+    oldContainer,
+    newContainer: source.parentNode,
+  };
 }

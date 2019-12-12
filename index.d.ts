@@ -36,9 +36,9 @@ declare module '@kitten-team/draggable' {
     readonly originalEvent: Event;
   }
 
-  export class DragStartEvent extends DragEvent { }
+  export class DragStartEvent extends DragEvent {}
 
-  export class DragMoveEvent extends DragEvent { }
+  export class DragMoveEvent extends DragEvent {}
 
   export class DragOverEvent extends DragEvent {
     readonly overContainer: HTMLElement;
@@ -62,39 +62,39 @@ declare module '@kitten-team/draggable' {
     readonly pressure: number;
   }
 
-  export class DragStopEvent extends DragEvent { }
+  export class DragStopEvent extends DragEvent {}
 
   /**
    * DraggableEvent
    */
   export type DraggableEventNames =
-    'draggable:initialize' |
-    'draggable:destroy' |
-    'drag:start' |
-    'drag:move' |
-    'drag:over' |
-    'drag:over:container' |
-    'drag:out' |
-    'drag:out:container' |
-    'drag:stop' |
-    'drag:pressure';
+    | 'draggable:initialize'
+    | 'draggable:destroy'
+    | 'drag:start'
+    | 'drag:move'
+    | 'drag:over'
+    | 'drag:over:container'
+    | 'drag:out'
+    | 'drag:out:container'
+    | 'drag:stop'
+    | 'drag:pressure';
 
   export class DraggableEvent extends AbstractEvent {
     readonly draggable: Draggable;
   }
-  export class DraggableInitializedEvent extends DraggableEvent { }
-  export class DraggableDestroyEvent extends DraggableEvent { }
+  export class DraggableInitializedEvent extends DraggableEvent {}
+  export class DraggableDestroyEvent extends DraggableEvent {}
 
   export type DraggableClassNames =
-    'body:dragging' |
-    'container:dragging' |
-    'source:dragging' |
-    'source:placed' |
-    'container:placed' |
-    'draggable:over' |
-    'container:over' |
-    'source:original' |
-    'mirror';
+    | 'body:dragging'
+    | 'container:dragging'
+    | 'source:dragging'
+    | 'source:placed'
+    | 'container:placed'
+    | 'draggable:over'
+    | 'container:over'
+    | 'source:original'
+    | 'mirror';
 
   export type DraggableContainer = HTMLElement | HTMLElement[] | NodeList;
 
@@ -112,14 +112,16 @@ declare module '@kitten-team/draggable' {
     scrollable?: ScrollableOptions;
     swapAnimation?: SwapAnimationOptions;
     dragInSourceOnly?: boolean;
+    guides?: GuidesOptions;
   }
 
   export class Draggable<EventListType extends string = DraggableEventNames | MirrorEventNames> {
     static Plugins: {
-      Announcement: typeof Announcement,
-      Focusable: typeof Focusable,
-      Mirror: typeof Mirror,
-      Scrollable: typeof Scrollable
+      Announcement: typeof Announcement;
+      Focusable: typeof Focusable;
+      Mirror: typeof Mirror;
+      Scrollable: typeof Scrollable;
+      Guides: typeof Guides;
     };
     constructor(containers: DraggableContainer, options?: DraggableOptions);
     destroy(): void;
@@ -173,11 +175,11 @@ declare module '@kitten-team/draggable' {
    * Mirror Plugin
    */
   export type MirrorEventNames =
-    'mirror:create' |
-    'mirror:created' |
-    'mirror:attached' |
-    'mirror:move' |
-    'mirror:destroy';
+    | 'mirror:create'
+    | 'mirror:created'
+    | 'mirror:attached'
+    | 'mirror:move'
+    | 'mirror:destroy';
 
   export class MirrorEvent extends AbstractEvent {
     readonly source: HTMLElement;
@@ -186,7 +188,7 @@ declare module '@kitten-team/draggable' {
     readonly sensorEvent: SensorEvent;
     readonly originalEvent: Event;
   }
-  export class MirrorCreateEvent extends MirrorEvent { }
+  export class MirrorCreateEvent extends MirrorEvent {}
   export class MirrorCreatedEvent extends MirrorEvent {
     readonly mirror: HTMLElement;
   }
@@ -220,6 +222,50 @@ declare module '@kitten-team/draggable' {
   }
 
   /**
+   * Guides Plugin
+   */
+  export type GuidesEventNames =
+    | 'guides:create'
+    | 'guides:created'
+    | 'guides:attached'
+    | 'guides:move'
+    | 'guides:destroy';
+
+  export class GuidesEvent extends AbstractEvent {
+    readonly source: HTMLElement;
+    readonly originalSource: HTMLElement;
+    readonly sourceContainer: HTMLElement;
+    readonly sensorEvent: SensorEvent;
+    readonly originalEvent: Event;
+  }
+  export class GuidesCreateEvent extends GuidesEvent {}
+  export class GuidesCreatedEvent extends GuidesEvent {
+    readonly guides: HTMLElement;
+  }
+  export class GuidesAttachedEvent extends GuidesEvent {
+    readonly guides: HTMLElement;
+  }
+  export class GuidesMoveEvent extends GuidesEvent {
+    readonly guides: HTMLElement;
+  }
+  export class GuidesDestroyEvent extends GuidesEvent {
+    readonly guides: HTMLElement;
+  }
+
+  export interface GuidesOptions {
+    guidesDir: 'x' | 'y';
+    padding?: number;
+    width?: number;
+    height?: number;
+  }
+
+  class Guides extends AbstractPlugin {
+    protected attach(): void;
+    protected detach(): void;
+    getElements(): HTMLElement[];
+  }
+
+  /**
    * Scrollable Plugin
    */
   export interface ScrollableOptions {
@@ -246,13 +292,13 @@ declare module '@kitten-team/draggable' {
     readonly pressure: number;
   }
 
-  export class DragStartSensorEvent extends SensorEvent { }
+  export class DragStartSensorEvent extends SensorEvent {}
 
-  export class DragMoveSensorEvent extends SensorEvent { }
+  export class DragMoveSensorEvent extends SensorEvent {}
 
-  export class DragStopSensorEvent extends SensorEvent { }
+  export class DragStopSensorEvent extends SensorEvent {}
 
-  export class DragPressureSensorEvent extends SensorEvent { }
+  export class DragPressureSensorEvent extends SensorEvent {}
 
   export interface SensorOptions {
     delay?: number;
@@ -271,20 +317,18 @@ declare module '@kitten-team/draggable' {
     DragSensor: typeof DragSensor;
   }
 
-  export class DragSensor extends Sensor { }
+  export class DragSensor extends Sensor {}
 
-  export class ForceTouchSensor extends Sensor { }
+  export class ForceTouchSensor extends Sensor {}
 
-  export class MouseSensor extends Sensor { }
+  export class MouseSensor extends Sensor {}
 
-  export class TouchSensor extends Sensor { }
+  export class TouchSensor extends Sensor {}
 
   /**
    * Droppable
    */
-  export type DroppableEventNames =
-    'droppable:dropped' |
-    'droppable:returned';
+  export type DroppableEventNames = 'droppable:dropped' | 'droppable:returned';
 
   export class DroppableEvent extends AbstractEvent {
     readonly dragEvent: DragEvent;
@@ -306,10 +350,7 @@ declare module '@kitten-team/draggable' {
     dropzone: HTMLElement;
   }
 
-  export type DroppableClassNames =
-    DraggableClassNames |
-    'droppable:active' |
-    'droppable:occupied';
+  export type DroppableClassNames = DraggableClassNames | 'droppable:active' | 'droppable:occupied';
 
   export interface DroppableOptions extends DraggableOptions {
     dropzone: string | NodeList | HTMLElement[] | (() => NodeList | HTMLElement[]);
@@ -325,11 +366,7 @@ declare module '@kitten-team/draggable' {
   /**
    * Sortable
    */
-  export type SortableEventNames =
-    'sortable:start' |
-    'sortable:sort' |
-    'sortable:sorted' |
-    'sortable:stop';
+  export type SortableEventNames = 'sortable:start' | 'sortable:sort' | 'sortable:sorted' | 'sortable:stop';
 
   export class SortableEvent extends AbstractEvent {
     readonly dragEvent: DragEvent;
@@ -361,22 +398,18 @@ declare module '@kitten-team/draggable' {
     readonly newContainer: HTMLElement;
   }
 
-  export class Sortable extends Draggable<DraggableEventNames | MirrorEventNames | SortableEventNames> { }
+  export class Sortable extends Draggable<DraggableEventNames | MirrorEventNames | SortableEventNames> {}
 
   /**
    * Swappable
    */
-  export type SwappableEventNames =
-    'swappable:start' |
-    'swappable:swap' |
-    'swappable:swapped' |
-    'swappable:stop';
+  export type SwappableEventNames = 'swappable:start' | 'swappable:swap' | 'swappable:swapped' | 'swappable:stop';
 
   export class SwappableEvent extends AbstractEvent {
     readonly dragEvent: DragEvent;
   }
 
-  export class SwappableStartEvent extends SwappableEvent { }
+  export class SwappableStartEvent extends SwappableEvent {}
 
   export class SwappableSwapEvent extends SwappableEvent {
     readonly over: HTMLElement;
@@ -387,9 +420,9 @@ declare module '@kitten-team/draggable' {
     readonly swappedElement: HTMLElement;
   }
 
-  export class SwappableStopEvent extends SwappableEvent { }
+  export class SwappableStopEvent extends SwappableEvent {}
 
-  export class Swappable extends Draggable<DraggableEventNames | MirrorEventNames | SwappableEventNames> { }
+  export class Swappable extends Draggable<DraggableEventNames | MirrorEventNames | SwappableEventNames> {}
 
   /**
    * Collidable Plugin
@@ -432,9 +465,9 @@ declare module '@kitten-team/draggable' {
   }
 
   export const Plugins: {
-    Collidable: typeof Collidable,
-    SwapAnimation: typeof SwapAnimation,
-    ResizeMirror: typeof ResizeMirror,
-    Snappable: typeof Snappable,
+    Collidable: typeof Collidable;
+    SwapAnimation: typeof SwapAnimation;
+    ResizeMirror: typeof ResizeMirror;
+    Snappable: typeof Snappable;
   };
 }

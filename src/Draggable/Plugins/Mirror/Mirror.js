@@ -129,7 +129,7 @@ export default class Mirror extends AbstractPlugin {
   }
 
   [onDragStart](dragEvent) {
-    if (dragEvent.canceled()) {
+    if (dragEvent.canceled() || this.draggable.options.guides) {
       return;
     }
 
