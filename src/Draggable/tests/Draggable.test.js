@@ -11,7 +11,7 @@ import {
 import Draggable, {defaultOptions} from '../Draggable';
 import {DragStartEvent, DragMoveEvent, DragStopEvent} from '../DragEvent';
 import {DraggableInitializedEvent, DraggableDestroyEvent} from '../DraggableEvent';
-import {Focusable, Mirror, Scrollable, Announcement} from '../Plugins';
+import {Focusable, Mirror, Scrollable, Announcement, Guides} from '../Plugins';
 import {MouseSensor, TouchSensor} from '../Sensors';
 
 const sampleMarkup = `
@@ -94,7 +94,7 @@ describe('Draggable', () => {
     it('should attach default plugins', () => {
       const newInstance = new Draggable();
 
-      expect(newInstance.plugins).toHaveLength(4);
+      expect(newInstance.plugins).toHaveLength(5);
 
       expect(newInstance.plugins[0]).toBeInstanceOf(Announcement);
 
@@ -103,6 +103,8 @@ describe('Draggable', () => {
       expect(newInstance.plugins[2]).toBeInstanceOf(Mirror);
 
       expect(newInstance.plugins[3]).toBeInstanceOf(Scrollable);
+
+      expect(newInstance.plugins[4]).toBeInstanceOf(Guides);
     });
 
     it('should attach custom plugins', () => {
@@ -110,9 +112,9 @@ describe('Draggable', () => {
         plugins: [TestPlugin],
       });
 
-      expect(newInstance.plugins).toHaveLength(5);
+      expect(newInstance.plugins).toHaveLength(6);
 
-      const customPlugin = newInstance.plugins[4];
+      const customPlugin = newInstance.plugins[5];
 
       expect(customPlugin.draggable).toBe(newInstance);
 
@@ -175,10 +177,6 @@ describe('Draggable', () => {
 
       newInstance.destroy();
 
-      expect(expectedPlugins[4].detachFunction).toHaveBeenCalled();
-
-      expect(expectedPlugins[4].detachFunction).toHaveBeenCalledTimes(1);
-
       expect(expectedPlugins[5].detachFunction).toHaveBeenCalled();
 
       expect(expectedPlugins[5].detachFunction).toHaveBeenCalledTimes(1);
@@ -186,6 +184,10 @@ describe('Draggable', () => {
       expect(expectedPlugins[6].detachFunction).toHaveBeenCalled();
 
       expect(expectedPlugins[6].detachFunction).toHaveBeenCalledTimes(1);
+
+      expect(expectedPlugins[7].detachFunction).toHaveBeenCalled();
+
+      expect(expectedPlugins[7].detachFunction).toHaveBeenCalledTimes(1);
     });
 
     it('should remove all sensor event listeners', () => {
