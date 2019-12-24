@@ -1,4 +1,5 @@
-import {mouseClosest, getRect} from 'shared/utils';
+import {mouseClosest} from 'shared/utils';
+import getRect from '../getRect';
 /**
  *
  * @param {x:number, y:number|null} position current position of cursor
@@ -6,30 +7,26 @@ import {mouseClosest, getRect} from 'shared/utils';
  * @param {HTMLElement[]} draggableElements all elements that can be drag, in other word, all positions available
  *
  */
-export default function guidesTargetIndex(position, guidesDirection, allDraggableElements, isInForeignObject = false) {
+export default function guidesTarget(position, guidesDirection, allDraggableElements, isInForeignObject = false) {
+  const draggableElementLength = allDraggableElements.length;
   if (!guidesDirection || allDraggableElements.length <= 1) {
     return null;
   }
   const mouseCloseTarget = mouseClosest({x: position.x, y: position.y}, allDraggableElements, isInForeignObject);
   const mouseCloseTargetRect = getRect(mouseCloseTarget, isInForeignObject);
-  const mouseClosestTargetIndex = allDraggableElements.indexOf(mouseCloseTarget);
-  let isLastElement = false;
-  if (mouseClosestTargetIndex < 0) {
-    return null;
-  }
-  if (mouseClosestTargetIndex === allDraggableElements.length - 1) {
-    isLastElement = true;
-  }
+  const isLastElement = mouseCloseTarget === allDraggableElements[draggableElementLength - 1];
   const mouseCloseTargetCentrePos =
     guidesDirection === 'y'
       ? mouseCloseTargetRect.left + mouseCloseTargetRect.width / 2
       : mouseCloseTargetRect.top + mouseCloseTargetRect.height / 2;
   const mousePos = guidesDirection === 'y' ? position.x : position.y;
   if (mousePos < mouseCloseTargetCentrePos) {
-    return mouseClosestTargetIndex;
+    return {nextTarget: mouseCloseTarget, isLastElement};
   } else if (isLastElement) {
-    return mousePos > mouseCloseTargetCentrePos ? mouseClosestTargetIndex + 1 : mouseClosestTargetIndex;
+    return mousePos > mouseCloseTargetCentrePos
+      ? {nextTarget: null, isLastElement}
+      : {nextTarget: mouseCloseTarget, isLastElement};
   } else {
-    return mouseClosestTargetIndex + 1;
+    return {nextTarget: mouseCloseTarget.nextElementSibling, isLastElement};
   }
 }

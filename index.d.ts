@@ -257,6 +257,7 @@ declare module '@kitten-team/draggable' {
     padding?: number;
     width?: number;
     height?: number;
+    isInForeignObject?:boolean;
   }
 
   class Guides extends AbstractPlugin {

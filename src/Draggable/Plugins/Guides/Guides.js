@@ -1,7 +1,7 @@
 /* eslint-disable prefer-rest-params */
 /* eslint-disable consistent-this */
 import AbstractPlugin from 'shared/AbstractPlugin';
-import {mouseClosest, guidesTargetIndex} from 'shared/utils';
+import {mouseClosest, guidesTargetIndex, getRect} from 'shared/utils';
 
 import {
   GuidesCreateEvent,
@@ -124,9 +124,9 @@ export default class Guides extends AbstractPlugin {
     this.guides.style.pointerEvents = 'none';
 
     if (this.options.guidesDir === 'y') {
-      this.guides.style.height = `${this.options.height || source.getBoundingClientRect().height}px`;
+      this.guides.style.height = `${this.options.height || source.clientHeight}px`;
     } else {
-      this.guides.style.width = `${this.options.width || source.getBoundingClientRect().width}px`;
+      this.guides.style.width = `${this.options.width || source.clientWidth}px`;
     }
 
     const guidesCreatedEvent = new GuidesCreatedEvent({
@@ -256,7 +256,7 @@ function positionGuides({withFrame = false} = {}) {
         const x = sensorEvent.clientX;
         const y = sensorEvent.clientY;
 
-        const sourceElementRect = source.getBoundingClientRect();
+        const sourceElementRect = getRect(source, options.isInForeignObject);
         const allDraggableElements = draggableElements;
         const guidesDir = options.guidesDir;
         // 设定滚动元素 container
@@ -264,7 +264,7 @@ function positionGuides({withFrame = false} = {}) {
         if (!container) {
           return;
         }
-        const containerRect = container.getBoundingClientRect();
+        const containerRect = getRect(container, options.isInForeignObject);
         const padding = options.padding || 0;
 
         const newTargetIndex = guidesTargetIndex(
@@ -274,6 +274,7 @@ function positionGuides({withFrame = false} = {}) {
           },
           guidesDir,
           allDraggableElements,
+          options.isInForeignObject,
         );
         if (newTargetIndex === null) {
           return;
@@ -285,18 +286,21 @@ function positionGuides({withFrame = false} = {}) {
           if (options.width) {
             guidesXpos = sourceElementRect.left + (sourceElementRect.width - options.width) / 2;
           }
-          guidesYpos =
-            newTargetIndex < allDraggableElements.length
-              ? allDraggableElements[newTargetIndex].getBoundingClientRect().top
-              : allDraggableElements[newTargetIndex - 1].getBoundingClientRect().bottom;
+          if (newTargetIndex < allDraggableElements.length) {
+            guidesYpos = getRect(allDraggableElements[newTargetIndex], options.isInForeignObject).top;
+          } else {
+            const lastEleRect = getRect(allDraggableElements[newTargetIndex - 1], options.isInForeignObject);
+            guidesYpos = lastEleRect.top + lastEleRect.height + padding;
+            if (guidesYpos > getRect(source.parentNode, options.isInForeignObject).bottom) {
+              guidesYpos -= padding;
+            }
+          }
           // 当参考线位置高于滑动元素时，向上滑动，低于滑动元素时，向下滑动
           if (guidesYpos < containerRect.top + 50) {
             const distance = containerRect.top - guidesYpos + sourceElementRect.height;
-            // smoothScroll(container, -(containerRect.top - guidesYpos + sourceElementRect.height));
             container.scrollTop -= distance > 10 ? 10 : distance;
           } else if (guidesYpos > containerRect.bottom - 60) {
             const distance = guidesYpos + sourceElementRect.height * 2 - containerRect.bottom;
-            // smoothScroll(container, guidesYpos + sourceElementRect.height * 2 - containerRect.bottom);
             container.scrollTop += distance > 10 ? 10 : distance;
           }
           if (guidesYpos < containerRect.top || guidesYpos > containerRect.bottom + 10) {

@@ -367,6 +367,13 @@ export default class Draggable {
     return '';
   }
 
+  getGuidesInForeignObjectOption() {
+    if (this.options.guides) {
+      return this.options.guides.isInForeignObject;
+    }
+    return false;
+  }
+
   /**
    * Scroll function that does the heavylifting
    * @private
@@ -512,7 +519,12 @@ export default class Draggable {
           this.isBindScroll = true;
         }
       }
-      let nextTargetIndex = guidesTargetIndex({x: clientX, y: clientY}, guidesDir, allDraggableElements);
+      let nextTargetIndex = guidesTargetIndex(
+        {x: clientX, y: clientY},
+        guidesDir,
+        allDraggableElements,
+        this.getGuidesInForeignObjectOption(),
+      );
       if (nextTargetIndex > allDraggableElements.indexOf(this.source)) {
         nextTargetIndex -= 1;
       }
@@ -532,7 +544,6 @@ export default class Draggable {
       this.currentIndex = nextTargetIndex;
 
       this.trigger(dragOverEvent);
-      // this.scrollAnimationFrameInDrag = requestAnimationFrame(this.scrollHandler);
       return;
     }
 
@@ -651,7 +662,12 @@ export default class Draggable {
       // this.scrollAnimationFrameInDrag = null;
       const {clientX, clientY} = getSensorEvent(event);
       const allDraggableElements = this.getDraggableElements();
-      let guidesIndex = guidesTargetIndex({x: clientX, y: clientY}, guidesDir, allDraggableElements);
+      let guidesIndex = guidesTargetIndex(
+        {x: clientX, y: clientY},
+        guidesDir,
+        allDraggableElements,
+        this.getGuidesInForeignObjectOption(),
+      );
       if (guidesIndex > allDraggableElements.indexOf(this.source)) {
         guidesIndex -= 1;
       }
