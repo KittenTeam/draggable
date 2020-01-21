@@ -147,9 +147,20 @@ export default class Guides extends AbstractPlugin {
       guides: this.guides,
     });
 
+    const guidesMoveEvent = new GuidesMoveEvent({
+      source,
+      originalSource,
+      sourceContainer,
+      sensorEvent,
+      dragEvent,
+      guides: this.guides,
+    });
+
     this.draggable.trigger(guidesCreatedEvent);
     document.body.appendChild(this.guides);
     this.draggable.trigger(guidesAttachedEvent);
+    this.draggable.trigger(guidesMoveEvent);
+    this.guides.style.display = 'block';
   }
 
   [onDragMove](dragEvent) {
@@ -282,31 +293,69 @@ function positionGuides({withFrame = false} = {}) {
         let guidesXpos = sourceElementRect.left;
         let guidesYpos = sourceElementRect.top;
         if (guidesDir === 'x') {
-          // 用于垂直方向排序，显示水平参考线,水平参考线宽度默认为被拖拽元素的宽度,根据 index 设置参考线位置
-          if (options.width) {
-            guidesXpos = sourceElementRect.left + (sourceElementRect.width - options.width) / 2;
-          }
           if (newTargetIndex < allDraggableElements.length) {
-            guidesYpos = getRect(allDraggableElements[newTargetIndex], options.isInForeignObject).top;
+            // 不是最后一个拖拽元素
+            const nextTarget = allDraggableElements[newTargetIndex];
+            const nextTargetRect = getRect(nextTarget, options.isInForeignObject);
+            guidesYpos = nextTargetRect.top;
+            // 如果有分组 option + dragitem 含有分组边缘角色 first/last actor进行位置修正
+            if (options.groupOption && nextTarget.className.indexOf('first-in-group') > -1) {
+              // 如果分组内角色为第一个角色
+              if (newTargetIndex === 0) {
+                guidesYpos =
+                  y < nextTargetRect.top - options.groupOption.tabHeight + 1
+                    ? nextTargetRect.top - options.groupOption.tabHeight
+                    : guidesYpos;
+              } else {
+                // 当前为分组外角色，下一个为分组第一个角色
+                const currentItemRect = getRect(allDraggableElements[newTargetIndex - 1], options.isInForeignObject);
+                guidesYpos = y > currentItemRect.bottom ? guidesYpos : currentItemRect.bottom;
+              }
+            }
+            // 当前为分组最后一个角色，下一个为分组外角色/分组第一个角色
+            if (
+              options.groupOption &&
+              newTargetIndex > 0 &&
+              allDraggableElements[newTargetIndex - 1].className.indexOf('last-in-group') > -1
+            ) {
+              const lastInGroupRect = getRect(allDraggableElements[newTargetIndex - 1], options.isInForeignObject);
+              guidesYpos = y > lastInGroupRect.bottom ? guidesYpos : lastInGroupRect.bottom;
+              if (
+                y > lastInGroupRect.bottom - 1 &&
+                y < nextTargetRect.top - options.groupOption.tabHeight - 1 &&
+                nextTarget.className.indexOf('first-in-group') > -1
+              ) {
+                guidesYpos = lastInGroupRect.bottom + padding * 2;
+              }
+            }
           } else {
+            // 最后一个拖拽元素
             const lastEleRect = getRect(allDraggableElements[newTargetIndex - 1], options.isInForeignObject);
-            guidesYpos = lastEleRect.top + lastEleRect.height + padding;
-            if (guidesYpos > getRect(source.parentNode, options.isInForeignObject).bottom) {
+            guidesYpos = lastEleRect.top + lastEleRect.height + padding * 2;
+            // 如果最后一个角色在分组中
+            if (
+              options.groupOption &&
+              allDraggableElements[newTargetIndex - 1].className.indexOf('last-in-group') > -1
+            ) {
+              guidesYpos = y > lastEleRect.bottom - 1 ? guidesYpos : lastEleRect.top + lastEleRect.height;
+            }
+            if (lastEleRect.top + lastEleRect.height >= getRect(source.parentNode, options.isInForeignObject).bottom) {
               guidesYpos -= padding;
             }
           }
-          // 当参考线位置高于滑动元素时，向上滑动，低于滑动元素时，向下滑动
-          if (guidesYpos < containerRect.top + 50) {
-            const distance = containerRect.top - guidesYpos + sourceElementRect.height;
-            container.scrollTop -= distance > 10 ? 10 : distance;
-          } else if (guidesYpos > containerRect.bottom - 60) {
-            const distance = guidesYpos + sourceElementRect.height * 2 - containerRect.bottom;
-            container.scrollTop += distance > 10 ? 10 : distance;
-          }
-          if (guidesYpos < containerRect.top || guidesYpos > containerRect.bottom + 10) {
-            return;
+          // 如果超出范围，隐藏参考线
+          if (guidesYpos < containerRect.top || guidesYpos > containerRect.bottom + padding) {
+            guides.style.opacity = 0;
+          } else {
+            guides.style.opacity = 1;
           }
           guidesYpos -= guides.clientHeight / 2 + padding;
+          // 用于垂直方向排序，显示水平参考线,水平参考线宽度默认为被拖拽元素的宽度,根据 index 设置参考线位置
+          // 将分组里面的参考线宽度添加 flag 进行设置
+          const guidesWidth = Number(guides.style.width.replace('px', '')) || options.width;
+          if (guidesWidth) {
+            guidesXpos = sourceElementRect.left + (sourceElementRect.width - guidesWidth) / 2;
+          }
         } else {
           const guidesPos = getGuidesXYPosition(
             {
@@ -319,21 +368,11 @@ function positionGuides({withFrame = false} = {}) {
           );
           guidesXpos = guidesPos.guidesXpos;
           guidesYpos = guidesPos.guidesYpos;
-          if (guidesYpos < containerRect.top + 30) {
-            const distance = containerRect.top - guidesYpos + sourceElementRect.height;
-            // smoothScroll(container, -(containerRect.top - guidesYpos + sourceElementRect.height));
-            container.scrollTop -= distance > 10 ? 10 : distance;
-          } else if (guidesYpos + sourceElementRect.height > containerRect.bottom) {
-            const distance = guidesYpos + sourceElementRect.height * 2 - containerRect.bottom;
-            // smoothScroll(container, guidesYpos + sourceElementRect.height * 2 - containerRect.bottom);
-            container.scrollTop += distance > 10 ? 10 : distance;
-          }
           if (guidesYpos < containerRect.top || guidesYpos + sourceElementRect.height > containerRect.bottom) {
             return;
           }
           guidesXpos -= guides.clientWidth / 2 + padding;
         }
-        guides.style.display = 'block';
         guides.style.transform = `translate3d(${guidesXpos}px, ${guidesYpos}px, 0)`;
         resolve(result);
       },
@@ -397,11 +436,13 @@ function getGuidesXYPosition(position, newTargetIndex, allDraggableElements) {
   let guidesXpos;
   let guidesYpos;
   if (newTargetIndex < allDraggableElements.length) {
-    guidesXpos = allDraggableElements[newTargetIndex].getBoundingClientRect().left;
-    guidesYpos = allDraggableElements[newTargetIndex].getBoundingClientRect().top;
+    const targetRect = allDraggableElements[newTargetIndex].getBoundingClientRect();
+    guidesXpos = targetRect.left;
+    guidesYpos = targetRect.top;
   } else {
-    guidesXpos = allDraggableElements[newTargetIndex - 1].getBoundingClientRect().right + position.padding * 2;
-    guidesYpos = allDraggableElements[newTargetIndex - 1].getBoundingClientRect().top;
+    const currentRect = allDraggableElements[newTargetIndex - 1].getBoundingClientRect();
+    guidesXpos = currentRect.right + position.padding * 2;
+    guidesYpos = currentRect.top;
   }
   if (isSpecialPosition(newTargetIndex, mouseClosestTargetIndex, allDraggableElements)) {
     guidesYpos = mouseCloseTargetRect.top;

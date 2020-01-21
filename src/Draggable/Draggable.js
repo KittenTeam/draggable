@@ -367,6 +367,13 @@ export default class Draggable {
     return '';
   }
 
+  getGuidesIsHaveGroup() {
+    if (this.options.guides) {
+      return this.options.guides.groupOption;
+    }
+    return '';
+  }
+
   getGuidesInForeignObjectOption() {
     if (this.options.guides) {
       return this.options.guides.isInForeignObject;
@@ -390,6 +397,7 @@ export default class Draggable {
       originalSource: this.originalSource,
       sourceContainer: this.source.parentNode,
       sensorEvent: {clientX, clientY},
+      guides: this.guides,
     });
     this.trigger(dragMoveEventScroll);
   }
@@ -490,6 +498,7 @@ export default class Draggable {
       originalSource: this.originalSource,
       sourceContainer: container,
       sensorEvent,
+      guides: this.guides,
     });
 
     this.trigger(dragMoveEvent);
@@ -506,7 +515,7 @@ export default class Draggable {
         clientY: sensorEvent.clientY,
       };
       // 在滑动的时候触发 dragmove 事件，使得鼠标不动但是滑动的时候参考线也进行移动
-      // 如何防止重复触发
+      // 如何防止重复触发, 暂时使用节流函数，使参考线事件每 20 毫秒触发一次，防止重复
       if (this.options.scrollable && !this.isBindScroll && !this.onlyScrollInElement) {
         const onlyScrollIn = this.options.scrollable.onlyScrollIn;
         if (onlyScrollIn) {
@@ -662,13 +671,14 @@ export default class Draggable {
       // this.scrollAnimationFrameInDrag = null;
       const {clientX, clientY} = getSensorEvent(event);
       const allDraggableElements = this.getDraggableElements();
+      const isHaveGroup = this.getGuidesIsHaveGroup();
       let guidesIndex = guidesTargetIndex(
         {x: clientX, y: clientY},
         guidesDir,
         allDraggableElements,
         this.getGuidesInForeignObjectOption(),
       );
-      if (guidesIndex > allDraggableElements.indexOf(this.source)) {
+      if (!isHaveGroup && guidesIndex > allDraggableElements.indexOf(this.source)) {
         guidesIndex -= 1;
       }
       const dragStopEvent = new DragStopEvent({
@@ -677,16 +687,20 @@ export default class Draggable {
         sensorEvent: event.sensorEvent,
         sourceContainer: this.sourceContainer,
         guidesIndex,
+        clientX,
+        clientY,
       });
       this.trigger(dragStopEvent);
-      if (guidesIndex === allDraggableElements.length - 1) {
-        this.source.parentNode.appendChild(this.originalSource);
-      } else {
-        const targetElement =
-          guidesIndex > allDraggableElements.indexOf(this.source)
-            ? allDraggableElements[guidesIndex + 1]
-            : allDraggableElements[guidesIndex];
-        this.source.parentNode.insertBefore(this.originalSource, targetElement);
+      if (!isHaveGroup) {
+        if (guidesIndex === allDraggableElements.length - 1) {
+          this.source.parentNode.appendChild(this.originalSource);
+        } else {
+          const targetElement =
+            guidesIndex > allDraggableElements.indexOf(this.source)
+              ? allDraggableElements[guidesIndex + 1]
+              : allDraggableElements[guidesIndex];
+          this.source.parentNode.insertBefore(this.originalSource, targetElement);
+        }
       }
       if (this.onlyScrollInElement && this.isBindScroll) {
         this.onlyScrollInElement.onscroll = null;

@@ -40,6 +40,16 @@ export class DragEvent extends AbstractEvent {
   }
 
   /**
+   * Draggables mirror element
+   * @property mirror
+   * @type {HTMLElement}
+   * @readonly
+   */
+  get guides() {
+    return this.data.guides;
+  }
+
+  /**
    * Draggables source container element
    * @property sourceContainer
    * @type {HTMLElement}

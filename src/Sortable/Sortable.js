@@ -266,6 +266,9 @@ function getSensorEvent(event) {
 }
 
 function move({source, over, overContainer, children, guidesDir = ''}) {
+  if (guidesDir) {
+    return moveWithinContainer(source, over, guidesDir);
+  }
   const emptyOverContainer = !children.length;
   const differentContainer = source.parentNode !== overContainer;
   const sameContainer = over && !differentContainer;

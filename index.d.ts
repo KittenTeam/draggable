@@ -38,7 +38,9 @@ declare module '@kitten-team/draggable' {
 
   export class DragStartEvent extends DragEvent {}
 
-  export class DragMoveEvent extends DragEvent {}
+  export class DragMoveEvent extends DragEvent {
+    guides: HTMLElement;
+  }
 
   export class DragOverEvent extends DragEvent {
     readonly overContainer: HTMLElement;
@@ -62,7 +64,16 @@ declare module '@kitten-team/draggable' {
     readonly pressure: number;
   }
 
-  export class DragStopEvent extends DragEvent {}
+  export class DragStopEvent extends DragEvent {
+    readonly data: DragStopData;
+  }
+
+  export interface DragStopData {
+    readonly originalSource: HTMLElement;
+    readonly guidesIndex: number;
+    readonly clientX: number;
+    readonly clientY: number;
+  }
 
   /**
    * DraggableEvent
@@ -115,7 +126,7 @@ declare module '@kitten-team/draggable' {
     guides?: GuidesOptions;
   }
 
-  export class Draggable<EventListType extends string = DraggableEventNames | MirrorEventNames> {
+  export class Draggable<EventListType extends string = DraggableEventNames | MirrorEventNames | GuidesEventNames> {
     static Plugins: {
       Announcement: typeof Announcement;
       Focusable: typeof Focusable;
@@ -253,11 +264,16 @@ declare module '@kitten-team/draggable' {
   }
 
   export interface GuidesOptions {
-    guidesDir: 'x' | 'y';
+    guidesDir: string;
     padding?: number;
     width?: number;
     height?: number;
-    isInForeignObject?:boolean;
+    isInForeignObject?: boolean;
+    groupOption?: GroupOption;
+  }
+
+  export interface GroupOption {
+    tabHeight: number;
   }
 
   class Guides extends AbstractPlugin {
@@ -399,7 +415,9 @@ declare module '@kitten-team/draggable' {
     readonly newContainer: HTMLElement;
   }
 
-  export class Sortable extends Draggable<DraggableEventNames | MirrorEventNames | SortableEventNames> {}
+  export class Sortable extends Draggable<
+    DraggableEventNames | MirrorEventNames | SortableEventNames | GuidesEventNames
+  > {}
 
   /**
    * Swappable
