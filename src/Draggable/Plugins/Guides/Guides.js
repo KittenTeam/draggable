@@ -115,14 +115,16 @@ export default class Guides extends AbstractPlugin {
       return;
     }
 
-    this.guides = document.createElement('div');
-    this.guides.style.top = 0;
-    this.guides.style.left = 0;
-    this.guides.style.margin = 0;
-    this.guides.style.display = 'none';
-    this.guides.style.position = 'fixed';
-    this.guides.style.pointerEvents = 'none';
-
+    if (this.options.guidesDom) {
+      this.guides = this.options.guidesDom;
+    } else {
+      this.guides = document.createElement('div');
+      this.guides.style.top = 0;
+      this.guides.style.left = 0;
+      this.guides.style.display = 'none';
+      this.guides.style.position = 'fixed';
+      this.guides.style.pointerEvents = 'none';
+    }
     if (this.options.guidesDir === 'y') {
       this.guides.style.height = `${this.options.height || source.clientHeight}px`;
     } else {
@@ -319,7 +321,7 @@ function positionGuides({withFrame = false} = {}) {
               allDraggableElements[newTargetIndex - 1].className.indexOf('last-in-group') > -1
             ) {
               const lastInGroupRect = getRect(allDraggableElements[newTargetIndex - 1], options.isInForeignObject);
-              guidesYpos = y > lastInGroupRect.bottom ? guidesYpos : lastInGroupRect.bottom;
+              guidesYpos = y > lastInGroupRect.bottom - 1 ? guidesYpos : lastInGroupRect.bottom;
               if (
                 y > lastInGroupRect.bottom - 1 &&
                 y < nextTargetRect.top - options.groupOption.tabHeight - 1 &&
@@ -327,6 +329,27 @@ function positionGuides({withFrame = false} = {}) {
               ) {
                 guidesYpos = lastInGroupRect.bottom + padding * 2;
               }
+            }
+            // 下一个目标元素为空分组
+            if (
+              options.groupOption &&
+              allDraggableElements[newTargetIndex].className.indexOf('unfold-empty-group') > -1
+            ) {
+              guidesYpos =
+                y > nextTargetRect.top && y < nextTargetRect.bottom - 12
+                  ? nextTargetRect.top + options.groupOption.tabHeight
+                  : guidesYpos;
+            }
+            if (
+              options.groupOption &&
+              newTargetIndex > 0 &&
+              allDraggableElements[newTargetIndex - 1].className.indexOf('unfold-empty-group') > -1
+            ) {
+              const emptyGroupRect = getRect(allDraggableElements[newTargetIndex - 1], options.isInForeignObject);
+              guidesYpos =
+                y > emptyGroupRect.top && y < emptyGroupRect.bottom - 12
+                  ? emptyGroupRect.top + options.groupOption.tabHeight
+                  : guidesYpos;
             }
           } else {
             // 最后一个拖拽元素
@@ -342,20 +365,29 @@ function positionGuides({withFrame = false} = {}) {
             if (lastEleRect.top + lastEleRect.height >= getRect(source.parentNode, options.isInForeignObject).bottom) {
               guidesYpos -= padding;
             }
+            if (
+              options.groupOption &&
+              newTargetIndex > 0 &&
+              allDraggableElements[newTargetIndex - 1].className.indexOf('unfold-empty-group') > -1
+            ) {
+              guidesYpos =
+                y > lastEleRect.top && y < lastEleRect.bottom - 12
+                  ? lastEleRect.top + options.groupOption.tabHeight
+                  : guidesYpos;
+            }
           }
-          // 如果超出范围，隐藏参考线
-          if (guidesYpos < containerRect.top || guidesYpos > containerRect.bottom + padding) {
-            guides.style.opacity = 0;
-          } else {
-            guides.style.opacity = 1;
-          }
-          guidesYpos -= guides.clientHeight / 2 + padding;
           // 用于垂直方向排序，显示水平参考线,水平参考线宽度默认为被拖拽元素的宽度,根据 index 设置参考线位置
           // 将分组里面的参考线宽度添加 flag 进行设置
           const guidesWidth = Number(guides.style.width.replace('px', '')) || options.width;
           if (guidesWidth) {
             guidesXpos = sourceElementRect.left + (sourceElementRect.width - guidesWidth) / 2;
           }
+          if (guidesYpos < containerRect.top || guidesYpos > containerRect.bottom + padding) {
+            guides.style.opacity = 0;
+          } else {
+            guides.style.opacity = 1;
+          }
+          guidesYpos -= guides.clientHeight / 2 + padding;
         } else {
           const guidesPos = getGuidesXYPosition(
             {

@@ -441,8 +441,18 @@ export default class Draggable {
     }
 
     this.source = this.originalSource.cloneNode(true);
-    this.originalSource.parentNode.insertBefore(this.source, this.originalSource);
     this.originalSource.style.display = 'none';
+
+    const isHaveGroup = this.getGuidesIsHaveGroup();
+    if (isHaveGroup) {
+      if (this.originalSource.nextElementSibling) {
+        this.originalSource.parentNode.insertBefore(this.source, this.originalSource.nextElementSibling);
+      } else {
+        this.originalSource.parentNode.appendChild(this.source);
+      }
+    } else {
+      this.originalSource.parentNode.insertBefore(this.source, this.originalSource);
+    }
 
     const dragEvent = new DragStartEvent({
       source: this.source,

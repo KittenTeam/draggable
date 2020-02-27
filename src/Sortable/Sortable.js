@@ -162,6 +162,7 @@ export default class Sortable extends Draggable {
       over,
       overContainer,
       children,
+      guidesDir: this.getGuidesDirection(),
     });
 
     if (!moves) {
@@ -302,6 +303,7 @@ function moveWithinContainer(source, over, guidesDir) {
       newContainer: source.parentNode,
     };
   }
+
   const oldIndex = index(source);
   const newIndex = index(over);
 
