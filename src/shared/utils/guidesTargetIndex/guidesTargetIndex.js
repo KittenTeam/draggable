@@ -7,7 +7,7 @@ import {mouseClosest, getRect} from 'shared/utils';
  *
  */
 export default function guidesTargetIndex(position, guidesDirection, allDraggableElements, isInForeignObject = false) {
-  if (!guidesDirection || allDraggableElements.length <= 1) {
+  if (!guidesDirection || allDraggableElements.length === 0) {
     return null;
   }
   const mouseCloseTarget = mouseClosest({x: position.x, y: position.y}, allDraggableElements, isInForeignObject);

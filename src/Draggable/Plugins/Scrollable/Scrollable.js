@@ -220,7 +220,8 @@ export default class Scrollable extends AbstractPlugin {
     const {speed, sensitivity} = this.options;
 
     const rect = this.scrollableElement.getBoundingClientRect();
-    const bottomCutOff = rect.bottom > window.innerHeight;
+    // chrome 67 在获取 bottom 的时候会多个 0.2 左右，导致不能滑动，使用 round
+    const bottomCutOff = Math.round(rect.bottom) > window.innerHeight;
     const topCutOff = rect.top < 0;
     const cutOff = topCutOff || bottomCutOff;
 

@@ -145,7 +145,6 @@ export default class Draggable {
 
     this.isBindScroll = false;
     this.currentMousePosition = null;
-    // this.scrollAnimationFrameInDrag = null;
 
     this[onDragStart] = this[onDragStart].bind(this);
     this[onDragMove] = this[onDragMove].bind(this);
@@ -429,7 +428,7 @@ export default class Draggable {
     this.originalSource = closest(target, this.options.draggable);
     this.sourceContainer = container;
 
-    if (!this.originalSource) {
+    if (!this.originalSource || !this.originalSource.parentNode) {
       sensorEvent.cancel();
       return;
     }
@@ -677,8 +676,6 @@ export default class Draggable {
     this.dragging = false;
     const guidesDir = this.getGuidesDirection();
     if (guidesDir) {
-      // cancelAnimationFrame(this.scrollAnimationFrameInDrag);
-      // this.scrollAnimationFrameInDrag = null;
       const {clientX, clientY} = getSensorEvent(event);
       const allDraggableElements = this.getDraggableElements();
       const isHaveGroup = this.getGuidesIsHaveGroup();

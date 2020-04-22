@@ -117,6 +117,7 @@ export default class Guides extends AbstractPlugin {
 
     if (this.options.guidesDom) {
       this.guides = this.options.guidesDom;
+      this.guides.style.display = 'none';
     } else {
       this.guides = document.createElement('div');
       this.guides.style.top = 0;
@@ -156,13 +157,13 @@ export default class Guides extends AbstractPlugin {
       sensorEvent,
       dragEvent,
       guides: this.guides,
+      isDragstart: true,
     });
 
     this.draggable.trigger(guidesCreatedEvent);
     document.body.appendChild(this.guides);
     this.draggable.trigger(guidesAttachedEvent);
     this.draggable.trigger(guidesMoveEvent);
-    this.guides.style.display = 'block';
   }
 
   [onDragMove](dragEvent) {
@@ -202,6 +203,7 @@ export default class Guides extends AbstractPlugin {
     this.draggable.trigger(guidesDestroyEvent);
 
     if (!guidesDestroyEvent.canceled()) {
+      this.guides.style.display = 'none';
       this.guides.parentNode.removeChild(this.guides);
     }
   }
@@ -232,6 +234,7 @@ export default class Guides extends AbstractPlugin {
       options: this.options,
       scrollInElement: this.draggable.onlyScrollInElement,
       draggableElements: this.draggable.getDraggableElements(),
+      isDragstart: guidesEvent.data.isDragstart,
     };
 
     return Promise.resolve(initialState).then(
@@ -253,7 +256,7 @@ export default class Guides extends AbstractPlugin {
  * @private
  */
 function positionGuides({withFrame = false} = {}) {
-  return ({guides, source, sensorEvent, scrollInElement, options, draggableElements, ...args}) => {
+  return ({guides, source, sensorEvent, scrollInElement, options, draggableElements, isDragstart, ...args}) => {
     return withPromise(
       (resolve) => {
         const result = {
@@ -406,6 +409,19 @@ function positionGuides({withFrame = false} = {}) {
           guidesXpos -= guides.clientWidth / 2 + padding;
         }
         guides.style.transform = `translate3d(${guidesXpos}px, ${guidesYpos}px, 0)`;
+
+        if (isDragstart) {
+          if (
+            (!options.groupOption && draggableElements.length === 1) ||
+            (options.groupOption &&
+              draggableElements.length === 1 &&
+              draggableElements[0].className.indexOf('first-in-group') === -1)
+          ) {
+            guides.style.display = 'none';
+          } else {
+            guides.style.display = 'block';
+          }
+        }
         resolve(result);
       },
       {
